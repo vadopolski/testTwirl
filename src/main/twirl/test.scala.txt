@@ -1,0 +1,41 @@
+@(businessKeyFields: Map[String, String], businessFields: Map[String, String],
+businessCompositeFields: Map[String, String])
+
+create schema if not exists ${target_db};
+use ${target_db};
+
+drop table if exists dict_employee;
+
+create table dict_employee(
+    nk                       string
+   ,dws_job                  string
+   ,dws_auto                 string
+   ,dws_archive              string
+   ,change_date_time         string
+    @for(p <- businessKeyFields) {
+    ,@p._1 @p._2}
+    @if(businessFields.nonEmpty) { @for(p <- businessFields) {
+    ,@p._1 @p._2 }}
+    @if(businessCompositeFields.nonEmpty) { @for(p <- businessCompositeFields) {
+    ,@p._1 @p._2 }}
+) stored as orc;
+
+
+drop table if exists dict_employee_delta;
+
+create table dict_employee_delta
+(
+    nk                       string
+   ,dws_job                  string
+   ,dws_act                  string
+   ,change_date_time         string
+    @for(p <- businessKeyFields) {
+    ,@p._1 @p._2}
+    @if(businessFields.nonEmpty) { @for(p <- businessFields) {
+    ,@p._1 @p._2 }}
+    @if(businessCompos
+    iteFields.nonEmpty) { @for(p <- businessCompositeFields) {
+    ,@p._1 @p._2 }}
+
+) partitioned by (date string)
+    stored as orc;
